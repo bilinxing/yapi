@@ -1,5 +1,7 @@
 import React, { PureComponent as Component } from 'react';
 import {
+  Form,
+  Input,
   Upload,
   Icon,
   message,
@@ -10,7 +12,6 @@ import {
   Switch,
   Modal,
   Radio,
-  Input,
   Checkbox
 } from 'antd';
 import PropTypes from 'prop-types';
@@ -26,6 +27,7 @@ import { fetchUpdateLogData } from '../../../../reducer/modules/news.js';
 import { handleSwaggerUrlData } from '../../../../reducer/modules/project';
 const Option = Select.Option;
 const confirm = Modal.confirm;
+const FormItem = Form.Item;
 const plugin = require('client/plugin.js');
 const RadioGroup = Radio.Group;
 const importDataModule = {};
@@ -73,11 +75,13 @@ class ProjectData extends Component {
       curImportType: 'swagger',
       curExportType: null,
       showLoading: false,
-      dataSync: 'merge',
+      dataSync: 'good',
       exportContent: 'all',
       isSwaggerUrl: false,
       swaggerUrl: '',
-      isWiki: false
+      isWiki: false,
+      includeApiPrefix: "/api",
+      exincludeApiPrefix: "/api/cxy/manager"
     };
   }
   static propTypes = {
@@ -124,6 +128,28 @@ class ProjectData extends Component {
   };
 
   handleAddInterface = async res => {
+    console.log("state:", this.state);
+    
+    let catids = new Map();
+    let apis = [];
+    res.apis.forEach(e => {
+      if(!e.path.startsWith(this.state.exincludeApiPrefix)&&
+        e.path.startsWith(this.state.includeApiPrefix)){
+        catids.set(e.catid, true);
+        apis.push(e);
+      }
+    });
+
+    let cats = [];
+    res.cats.forEach(e => {
+      if(catids.get(e.id)){
+        catids.set(e.catid, true);
+        cats.push(e)
+      }
+    });
+
+    res = {apis:apis, cats:cats, basePath:res.basePath}
+
     return await HandleImportData(
       res,
       this.props.match.params.id,
@@ -148,12 +174,13 @@ class ProjectData extends Component {
       reader.readAsText(info.file);
       reader.onload = async res => {
         res = await importDataModule[this.state.curImportType].run(res.target.result);
+        console.log("====>res:",res)
         if (this.state.dataSync === 'merge') {
           // 开启同步
           this.showConfirm(res);
         } else {
           // 未开启同步
-          await this.handleAddInterface(res);
+          this.showConfirm(res);
         }
       };
     } else {
@@ -163,19 +190,19 @@ class ProjectData extends Component {
 
   showConfirm = async res => {
     let that = this;
-    let typeid = this.props.match.params.id;
-    let apiCollections = res.apis.map(item => {
-      return {
-        method: item.method,
-        path: item.path
-      };
-    });
-    let result = await this.props.fetchUpdateLogData({
-      type: 'project',
-      typeid,
-      apis: apiCollections
-    });
-    let domainData = result.payload.data.data;
+    // let typeid = this.props.match.params.id;
+    // let apiCollections = res.apis.map(item => {
+    //   return {
+    //     method: item.method,
+    //     path: item.path
+    //   };
+    // });
+    // let result = await this.props.fetchUpdateLogData({
+    //   type: 'project',
+    //   typeid,
+    //   apis: apiCollections
+    // });
+    // let domainData = result.payload.data.data;
     const ref = confirm({
       title: '您确认要进行数据同步????',
       width: 600,
@@ -187,14 +214,45 @@ class ProjectData extends Component {
       content: (
         <div className="postman-dataImport-modal">
           <div className="postman-dataImport-modal-content">
-            {domainData.map((item, index) => {
+            {/* {domainData.map((item, index) => {
               return (
                 <div key={index} className="postman-dataImport-show-diff">
                   <span className="logcontent" dangerouslySetInnerHTML={{ __html: item.content }} />
                 </div>
               );
-            })}
+            })} */}
           </div>
+          <FormItem
+              label={
+                <span>
+                  匹配前缀&nbsp;
+                  <Tooltip title="只有匹配该前缀path才会录入">
+                    <Icon type="question-circle-o" />
+                  </Tooltip>
+                </span>
+              }
+            >
+            <Input 
+              placeholder={this.state.includeApiPrefix}
+              onChange={e => this.state.includeApiPrefix=e.target.value}
+            />
+          </FormItem>
+          <FormItem
+              label={
+                <span>
+                  排除前缀&nbsp;
+                  <Tooltip title="需要排除的前缀path,匹配到该前缀的path不会被导入">
+                    <Icon type="question-circle-o" />
+                  </Tooltip>
+                </span>
+              }
+            >
+            <Input 
+              placeholder={this.state.exincludeApiPrefix}
+              onChange={e => this.state.exincludeApiPrefix=e.target.value}
+            />
+          </FormItem>
+
           <p className="info">温馨提示： 数据同步后，可能会造成原本的修改数据丢失</p>
         </div>
       ),
