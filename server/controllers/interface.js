@@ -822,7 +822,8 @@ class interfaceController extends baseController {
     }
 
     yapi.emitHook('interface_update', id).then();
-    await this.autoAddTag(params);
+    params.project_id = interfaceData.project_id;// 更新的时候没有传入projectId 会导致报错
+    await this.autoAddTag(params); 
 
     ctx.body = yapi.commons.resReturn(result);
     return 1;
