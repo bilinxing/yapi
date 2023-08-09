@@ -236,6 +236,8 @@ class ProjectMessage extends Component {
     const {
       name,
       basepath,
+      exinclude_api_prefix,
+      include_api_prefix, 
       desc,
       project_type,
       group_id,
@@ -247,6 +249,8 @@ class ProjectMessage extends Component {
     initFormValues = {
       name,
       basepath,
+      exinclude_api_prefix,
+      include_api_prefix, 
       desc,
       project_type,
       group_id,
@@ -361,6 +365,51 @@ class ProjectMessage extends Component {
                   {
                     required: false,
                     message: '请输入基本路径! '
+                  }
+                ]
+              })(<Input />)}
+            </FormItem>
+
+            <FormItem
+              {...formItemLayout}
+              label={
+                <span>
+                  导入排除api路径&nbsp;
+                  <Tooltip title="导入排除api路径,用于导入swagger时排除过滤指定path前缀">
+                    <Icon type="question-circle-o" />
+                  </Tooltip>
+                </span>
+              }
+            >
+              {getFieldDecorator('exinclude_api_prefix', {
+                initialValue: initFormValues.exinclude_api_prefix,
+                rules: [
+                  {
+                    required: false,
+                    message: '请输入导入排除api路径! '
+                  }
+                ]
+              })(<Input />)}
+            </FormItem>
+
+
+            <FormItem
+              {...formItemLayout}
+              label={
+                <span>
+                  导入的匹配api路径&nbsp;
+                  <Tooltip title="导入的匹配api路径,用于导入swagger时匹配过滤指定path前缀">
+                    <Icon type="question-circle-o" />
+                  </Tooltip>
+                </span>
+              }
+            >
+              {getFieldDecorator('include_api_prefix', {
+                initialValue: initFormValues.include_api_prefix,
+                rules: [
+                  {
+                    required: false,
+                    message: '请输入导入的匹配api路径! '
                   }
                 ]
               })(<Input />)}

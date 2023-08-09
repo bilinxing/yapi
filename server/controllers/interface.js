@@ -1079,7 +1079,8 @@ class interfaceController extends baseController {
           return (ctx.body = yapi.commons.resReturn(null, 406, '没有权限'));
         }
       }
-      let res = await this.catModel.list(project_id);
+      let menulist = await this.catModel.list(project_id);
+      let res = {menulist:menulist, project:project}
       return (ctx.body = yapi.commons.resReturn(res));
     } catch (e) {
       yapi.commons.resReturn(null, 400, e.message);

@@ -98,10 +98,13 @@ class ProjectData extends Component {
   componentWillMount() {
     axios.get(`/api/interface/getCatMenu?project_id=${this.props.match.params.id}`).then(data => {
       if (data.data.errcode === 0) {
-        let menuList = data.data.data;
+        let menuList = data.data.data.menulist;
         this.setState({
           menuList: menuList,
-          selectCatid: menuList[0]._id
+          selectCatid: menuList[0]._id,
+          projectBasePath:data.data.data.project.basepath,
+          includeApiPrefix:data.data.data.project.include_api_prefix,
+          exincludeApiPrefix:data.data.data.project.exinclude_api_prefix
         });
       }
     });
@@ -129,26 +132,25 @@ class ProjectData extends Component {
 
   handleAddInterface = async res => {
     console.log("state:", this.state);
-    
-    let catids = new Map();
+
+    let cathit = new Map();
     let apis = [];
     res.apis.forEach(e => {
-      if(!e.path.startsWith(this.state.exincludeApiPrefix)&&
-        e.path.startsWith(this.state.includeApiPrefix)){
-        catids.set(e.catid, true);
+      if (!e.path.startsWith(this.state.exincludeApiPrefix) &&
+        e.path.startsWith(this.state.includeApiPrefix)) {
+        cathit.set(e.catname, true);
         apis.push(e);
       }
     });
 
     let cats = [];
     res.cats.forEach(e => {
-      if(catids.get(e.id)){
-        catids.set(e.catid, true);
+      if (cathit.get(e.name)) {
         cats.push(e)
       }
     });
 
-    res = {apis:apis, cats:cats, basePath:res.basePath}
+    res = { apis: apis, cats: cats, basePath: res.basePath }
 
     return await HandleImportData(
       res,
@@ -174,7 +176,7 @@ class ProjectData extends Component {
       reader.readAsText(info.file);
       reader.onload = async res => {
         res = await importDataModule[this.state.curImportType].run(res.target.result);
-        console.log("====>res:",res)
+        console.log("====>res:", res)
         if (this.state.dataSync === 'merge') {
           // 开启同步
           this.showConfirm(res);
@@ -223,33 +225,33 @@ class ProjectData extends Component {
             })} */}
           </div>
           <FormItem
-              label={
-                <span>
-                  匹配前缀&nbsp;
-                  <Tooltip title="只有匹配该前缀path才会录入">
-                    <Icon type="question-circle-o" />
-                  </Tooltip>
-                </span>
-              }
-            >
-            <Input 
+            label={
+              <span>
+                匹配前缀&nbsp;
+                <Tooltip title="只有匹配该前缀path才会录入">
+                  <Icon type="question-circle-o" />
+                </Tooltip>
+              </span>
+            }
+          >
+            <Input
               placeholder={this.state.includeApiPrefix}
-              onChange={e => this.state.includeApiPrefix=e.target.value}
+              onChange={e => this.state.includeApiPrefix = e.target.value}
             />
           </FormItem>
           <FormItem
-              label={
-                <span>
-                  排除前缀&nbsp;
-                  <Tooltip title="需要排除的前缀path,匹配到该前缀的path不会被导入">
-                    <Icon type="question-circle-o" />
-                  </Tooltip>
-                </span>
-              }
-            >
-            <Input 
+            label={
+              <span>
+                排除前缀&nbsp;
+                <Tooltip title="需要排除的前缀path,匹配到该前缀的path不会被导入">
+                  <Icon type="question-circle-o" />
+                </Tooltip>
+              </span>
+            }
+          >
+            <Input
               placeholder={this.state.exincludeApiPrefix}
-              onChange={e => this.state.exincludeApiPrefix=e.target.value}
+              onChange={e => this.state.exincludeApiPrefix = e.target.value}
             />
           </FormItem>
 
@@ -543,7 +545,7 @@ class ProjectData extends Component {
                 {this.state.curExportType ? (
                   <div>
                     <p className="export-desc">{exportDataModule[this.state.curExportType].desc}</p>
-                    <a 
+                    <a
                       target="_blank"
                       rel="noopener noreferrer"
                       href={exportHref}>

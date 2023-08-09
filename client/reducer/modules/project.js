@@ -186,6 +186,8 @@ export function addProject(data) {
     name,
     prd_host,
     basepath,
+    exinclude_api_prefix,
+    include_api_prefix, 
     desc,
     group_id,
     group_name,
@@ -202,6 +204,8 @@ export function addProject(data) {
     prd_host,
     protocol,
     basepath,
+    exinclude_api_prefix,
+    include_api_prefix, 
     desc,
     group_id,
     group_name,
@@ -217,7 +221,7 @@ export function addProject(data) {
 
 // 修改项目
 export function updateProject(data) {
-  let { name, project_type, basepath, desc, _id, env, group_id, switch_notice, strice, is_json5, tag } = data;
+  let { name, project_type, basepath,exinclude_api_prefix,include_api_prefix, desc, _id, env, group_id, switch_notice, strice, is_json5, tag } = data;
   
   // 过滤项目名称中有html标签存在的情况
   name = htmlFilter(name);
@@ -225,6 +229,8 @@ export function updateProject(data) {
     name,
     project_type,
     basepath,
+    exinclude_api_prefix,
+    include_api_prefix, 
     switch_notice,
     desc,
     id: _id,
